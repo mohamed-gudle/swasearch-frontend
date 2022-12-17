@@ -1,29 +1,19 @@
 
+import 'Answer.dart';
+
 class Context {
-  final String context;
-  final String question;
-  final String answer;
-  final int score;
+  String? context;
+  String? question;
+  String? answer;
+  DateTime? created;
 
+  Context();
 
+  Map<String,dynamic> toJson()=> {'context':context, 'answer': answer,"created":created, "question":question};
+  Context.fromSnapshot(snapshot)
+      : context=snapshot.data()['context'],
+        question=snapshot.data()['question'],
+        answer=snapshot.data()['answer'],
+        created=snapshot.data()['created'].toDate();
 
-  const Context({
-    required this.context,
-    required this.question,
-    required this.answer,
-    required this.score,
-
-
-
-  });
-
-  factory Context.fromJson(Map<String, dynamic> json) {
-    return Context(
-      context: json['context'],
-      question: json['url'],
-      answer: json['answer'],
-      score: json['score'],
-
-    );
-  }
 }

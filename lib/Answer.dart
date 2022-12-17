@@ -1,10 +1,10 @@
 class Answer{
-  final String answer;
-  final double score;
-  final int start;
-  final int end;
+  String answer;
+  double? score;
+  int? start;
+  int? end;
 
-  const Answer({
+  Answer({
     required this.answer,
     required this.score,
     required this.start,

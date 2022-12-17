@@ -1,54 +1,69 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:swasearch/Article.dart';
-
 import 'package:http/http.dart' as http;
-
+import 'package:swasearch/screens/home.dart';
+import '../Authentication.dart';
 import 'inference.dart';
 
 class SearchList extends StatefulWidget {
-  const SearchList({Key? key}) : super(key: key);
+  const SearchList({Key? key, required User user}) :
+        _user = user,
+        super(key: key);
+  final User _user;
 
   @override
   State<SearchList> createState() => _SearchListState();
 }
 
 class _SearchListState extends State<SearchList> {
-  final _suggestions = <WordPair>[];
-  final _saved = <WordPair>[];
-  final _biggerFont = const TextStyle(fontSize: 18);
-  //late Future<List<Article>> futureArticles;
-  var question = '';
+  late User _user;
+  bool _isSigningOut= false;
+  var loading = false;
+  var _question='';
+  final _controller = TextEditingController();
 
-  void goBack() {
-    Navigator.of(context).pop();
+  Route _routeToSignInScreen() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => HomeScreen(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        var begin = Offset(-1.0, 0.0);
+        var end = Offset.zero;
+        var curve = Curves.ease;
+
+        var tween =
+        Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+    );
   }
+
 
   @override
   void initState() {
+    _user= widget._user;
     super.initState();
 
   }
 
-  var loading = false;
-  Future<List<Article>> fetchArticles(String country) async {
-
-    if (country == '') {
+  Future<List<Article>> fetchArticles(String question) async {
+    if (question == '') {
       return <Article>[];
     }
     setState(() {
       loading = true;
     });
     final response = await http.get(Uri.parse(
-        'http://34.140.165.64/search?question=$question'));
+        'http://34.79.199.157/search?question=$question'));
 
     if (response.statusCode == 200) {
 
@@ -61,21 +76,18 @@ class _SearchListState extends State<SearchList> {
       loading=false;
       return result;
     } else {
-      // If the server did not return a 200 OK response,
-      // then throw an exception.
       throw Exception('Failed to load articles');
     }
   }
 
-  void goToCustomSearch() {
+  void _goToCustomSearch() {
     Navigator.of(context).push(
-        MaterialPageRoute(builder: (BuildContext context) => Inference()));
+        MaterialPageRoute(builder: (BuildContext context) => Inference(user:_user)));
   }
 
   @override
   Widget build(BuildContext context) {
-    final wordPair = WordPair.random();
-    var _controller = TextEditingController();
+
 
     return MaterialApp(
       theme: ThemeData(
@@ -93,20 +105,17 @@ class _SearchListState extends State<SearchList> {
                 color: Colors.black, borderRadius: BorderRadius.circular(5)),
             child: Center(
               child: TextField(
+                onSubmitted: (value){
+                  _question=_controller.value.text;
+                },
                 controller: _controller,
                 decoration: InputDecoration(
-                    prefixIcon: IconButton(
+                    suffixIcon: IconButton(
                       icon: const Icon(Icons.search),
                       onPressed: () {
                         setState(() {
-                          question = _controller.value.text;
+                          _question = _controller.value.text;
                         });
-                      },
-                    ),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        /* Clear the search field */
                       },
                     ),
                     hintText: 'Search...',
@@ -115,16 +124,30 @@ class _SearchListState extends State<SearchList> {
             ),
           ),
           actions: [
-            IconButton(
-                onPressed: () {
-                  goToCustomSearch();
-                },
-                icon: Icon(Icons.search))
+            TextButton(
+               onPressed: (){_goToCustomSearch();},
+                child: const Text("Custom Search")
+            ),
+            _isSigningOut ?
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ) :
+            TextButton(onPressed: ()async {
+              setState(() {
+                _isSigningOut = true;
+              });
+              await Authentication.signOut(context: context);
+              setState(() {
+                _isSigningOut = false;
+              });
+              Navigator.of(context)
+                  .pushReplacement(_routeToSignInScreen());
+            }, child: const Text("Sign Out")),
           ],
         ),
         body: Center(
           child: FutureBuilder<List<Article>>(
-            future: question == '' ? null : fetchArticles(question),
+            future: _question == '' ? null : fetchArticles(_question),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 if(loading){
@@ -148,7 +171,7 @@ class _SearchListState extends State<SearchList> {
                 return const CircularProgressIndicator();
               }
 
-              return const Text("You have not searched for anything yet");
+              return const Text("You have not asked anything yet,\n search the answer to any swahili question and we shall retrieve it from the internet");
             },
           ),
         ),
