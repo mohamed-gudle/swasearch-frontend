@@ -40,6 +40,11 @@ dependencies:
   firebase_auth: ^4.1.4
   firebase_core: ^2.3.0
   http: ^0.13.5
+  animated_background: ^1.0.5
+  flutterfire_ui: ^0.4.3+20
+  firebase_database: ^10.0.7
+  cloud_firestore: ^4.2.0
+
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +67,12 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+      - assets/images/
+  fonts:
+    - family: overlock
+      fonts:
+       - asset: assets/images/fonts/Overlock-Bold.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -1,14 +1,10 @@
 class Answer{
-  final String title;
-  final String url;
   final String answer;
-  final String score;
-  final String start;
-  final String end;
+  final double score;
+  final int start;
+  final int end;
 
   const Answer({
-    required this.title,
-    required this.url,
     required this.answer,
     required this.score,
     required this.start,
@@ -18,12 +14,10 @@ class Answer{
 
   factory Answer.fromJson(Map<String, dynamic> json) {
     return Answer(
-      title: json['activity'],
-      url: json['country'],
-      answer: json['name'],
-      score: json['country'],
-      end: json['name'],
-      start: json['name'],
+      answer: json['answer'],
+      score: json['score'],
+      end: json['end'],
+      start: json['start'],
 
     );
   }
